@@ -1,5 +1,4 @@
 use gtk::prelude::*;
-use gtk::Button;
 use wry::{
   application::{
     event::{Event, StartCause, WindowEvent},
@@ -10,11 +9,15 @@ use wry::{
 };
 // use webkit2gtk;
 
+mod tab_bar;
+
+use crate::tab_bar::make_tab_bar;
+
 #[cfg(target_os = "linux")]
 use wry::application::platform::unix::WindowExtUnix;
 
 #[cfg(target_os = "linux")]
-fn add_stuff(window: &Window) -> wry::Result<()> {
+fn integrate_ui(window: &Window) -> wry::Result<()> {
   let gtk_window = &window.gtk_window();
 
   if let Some(widget) = gtk_window.child() {
@@ -30,17 +33,7 @@ fn add_stuff(window: &Window) -> wry::Result<()> {
       vbox.add(menu_bar);
     }
 
-    let button = Button::with_label("Click me!");
-    button.connect_clicked(|_| {
-      eprintln!("Clicked 1!");
-    });
-    vbox.add(&button);
-
-    let button = Button::with_label("Click me!");
-    button.connect_clicked(|_| {
-      eprintln!("Clicked 2!");
-    });
-    vbox.add(&button);
+    vbox.add(&make_tab_bar());
 
     if let Some(webview) = children.last() {
       webview_box.remove(webview);
@@ -70,9 +63,8 @@ fn main() -> wry::Result<()> {
     .build(&event_loop)?;
 
   let webview = make_webview(window)?;
-  let window = webview.window();
 
-  add_stuff(window)?;
+  integrate_ui(webview.window())?;
 
   event_loop.run(move |event, _, control_flow| {
     *control_flow = ControlFlow::Wait;
