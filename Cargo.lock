@@ -1235,6 +1235,8 @@ name = "talaria"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "gtk",
+ "webkit2gtk",
  "wry",
 ]
 

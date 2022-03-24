@@ -8,11 +8,11 @@ mkShell rec {
     # Deps
     libclang
     glib
-    glib-networking
     cairo
     pango
     atk
     webkitgtk
+    glib-networking
 
     # Dev
     nodePackages.nodemon
@@ -23,4 +23,5 @@ mkShell rec {
   LIBCLANG_PATH = "${libclang.lib}/lib";
   RUST_SRC_PATH = rust.packages.stable.rustPlatform.rustLibSrc;
   LD_LIBRARY_PATH = lib.makeLibraryPath (buildInputs ++ nativeBuildInputs);
+  GIO_MODULE_DIR = "${glib-networking}/lib/gio/modules/";
 }
