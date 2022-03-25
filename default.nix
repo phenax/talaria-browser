@@ -7,12 +7,8 @@ mkShell rec {
 
     # Deps
     libclang
-    glib
-    cairo
-    pango
-    atk
-    webkitgtk
-    glib-networking
+    libGL
+    pkgs.qt5.full
 
     # Dev
     nodePackages.nodemon
