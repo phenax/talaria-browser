@@ -8,3 +8,4 @@ edition = "2021"
 [dependencies]
 anyhow = "1.0.56"
 qmetaobject = { version = "0.2.7", features = ["webengine"] }
+cstr = "0.2.10"
