@@ -1,4 +1,5 @@
 use gtk::prelude::*;
+use webkit2gtk;
 use wry::{
   application::{
     event::{Event, StartCause, WindowEvent},
@@ -7,7 +8,6 @@ use wry::{
   },
   webview::{WebView, WebViewBuilder},
 };
-// use webkit2gtk;
 
 mod tab_bar;
 
@@ -15,6 +15,13 @@ use crate::tab_bar::make_tab_bar;
 
 #[cfg(target_os = "linux")]
 use wry::application::platform::unix::WindowExtUnix;
+
+#[cfg(target_os = "linux")]
+fn configure_webview_gtk(webview: &gtk::Widget) {
+  if let Some(webview) = webview.dynamic_cast_ref::<webkit2gtk::WebView>() {
+    println!("{:?}", webview.settings())
+  }
+}
 
 #[cfg(target_os = "linux")]
 fn integrate_ui(window: &Window) -> wry::Result<()> {
@@ -33,11 +40,26 @@ fn integrate_ui(window: &Window) -> wry::Result<()> {
       vbox.add(menu_bar);
     }
 
-    vbox.add(&make_tab_bar());
+    let notebook = gtk::Notebook::builder()
+      .tab_pos(gtk::PositionType::Top)
+      .build();
+
+    notebook.append_page(
+      &gtk::Frame::new(Some("This is label")),
+      Some(&gtk::Label::new(Some("Foobar"))),
+    );
+    notebook.append_page(
+      &gtk::Frame::new(Some("Next frame")),
+      Some(&gtk::Label::new(Some("Goobar"))),
+    );
+
+    vbox.add(&notebook);
+    // vbox.add(&make_tab_bar());
 
     if let Some(webview) = children.last() {
       webview_box.remove(webview);
       vbox.pack_end(webview, true, true, 0);
+      configure_webview_gtk(webview);
       webview.grab_focus();
     }
 
