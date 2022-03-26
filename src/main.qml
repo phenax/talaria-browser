@@ -3,89 +3,127 @@ import QtQuick.Window 2.0;
 import QtQuick.Controls 1.2;
 import QtWebEngine 1.8;
 
-Window {
-  title: "Talaria"
-  visible: true
-  width: 800
-  height: 600
+QtObject {
+  id: rootNode
+  // Spawn first window
+  Component.onCompleted: windowComponent.createObject(rootNode);
 
-  ListModel {
-    id: tabListModel
+  property Component windowComponent: Window {
+    property string loadUrl: "https://google.com"
 
-    ListElement {
-      pageUrl: "https://www.bennish.net/web-notifications.html"
+    title: "Talaria"
+    visible: true
+    width: 800
+    height: 600
+
+    Component.onCompleted: tabListModel.insert(0, { pageUrl: loadUrl })
+
+    ListModel {
+      id: tabListModel
+
+      ListElement {
+        pageUrl: "https://html5test.com"
+      }
+
+      ListElement {
+        pageUrl: "https://google.com"
+      }
     }
 
-    ListElement {
-      pageUrl: "https://html5test.com"
-    }
+    TabView {
+      id: tabView
+      anchors.fill: parent
 
-    ListElement {
-      pageUrl: "https://google.com"
-    }
-  }
+      Repeater {
+        model: tabListModel
 
-  TabView {
-    id: tabView
-    anchors.rightMargin: 0
-    anchors.bottomMargin: 0
-    anchors.leftMargin: 0
-    anchors.topMargin: 0
-    anchors.fill: parent
+        Tab {
+          id: tabItem
+          title: "Loading..."
 
-    // MouseArea {
-    //   anchors.fill:parent
-    //   onClicked: tabView.newTab()
-    // }
+          WebEngineView {
+            id: webview
+            anchors.fill: parent
+            anchors.bottomMargin: 20
+            url: pageUrl
 
-    Repeater {
-      model: tabListModel
+            onNewViewRequested: function(request) {
+              switch (request.destination) {
+                case WebEngineView.NewViewInWindow:
+                case WebEngineView.NewViewInDialog:
+                  tabView.newWindow(request.requestedUrl.toString());
+                  break;
+                case WebEngineView.NewViewInBackgroundTab:
+                case WebEngineView.NewViewInTab:
+                  tabView.newTab(request.requestedUrl.toString())
+                  break;
+                default: break;
+              }
+            }
 
-      Tab {
-        id: tabItem
-        title: "Loading..."
+            onWindowCloseRequested: {
+              tabListModel.remove(tabView.currentIndex, 1)
+              webview.destroy()
+            }
 
-        WebEngineView {
-          id: webview
-          anchors.fill: parent
-          url: pageUrl
-
-          // devToolsView: WebEngineView {
-          //   visible: false
-          //   anchors.fill: parent
-          //   url: "http://localhost:9000"
-          // }
-
-          onLoadingChanged: {
-            tabItem.title = (webview.title || 'Loading...').slice(0, 20) + '...'
+            onLoadingChanged: {
+              tabItem.title = (webview.title || 'Loading...').slice(0, 20) + '...'
+            }
           }
         }
+      }
 
-        // Rectangle {
-        //   color: "steelblue"
-        //   height: 18
-        //   width: parent.width
-        //   x: 0
-        //   y: parent.height - height
-        //   Text {
-        //     text: tabItem.title + "%"
-        //     color: "white"
-        //   }
-        // }
+      function newWindow(url) {
+        windowComponent.createObject(rootNode, { loadUrl: url || 'https://google.com' });
+      }
+
+      function newTab(url) {
+        tabListModel.insert(tabView.currentIndex, { pageUrl: url || 'https://google.com' })
+      }
+
+      function getCurrentWebView() {
+        var tab = tabView.getTab(tabView.currentIndex)
+        return tab && tab.item
+      }
+
+      function webViewLoadProgress() {
+        var webview = tabView.getCurrentWebView()
+        if (webview && webview.loading) {
+          return webview.loadProgress
+        }
+        return 0
       }
     }
 
-    function newTab() {
-      tabListModel.push({ pageUrl: 'https://google.com' })
+    Rectangle {
+      color: "black"
+      height: 18
+      width: parent.width
+      y: parent.height - height
+
+      Text {
+        text: tabView.getCurrentWebView().url
+        verticalAlignment: Text.AlignVCenter
+        height: parent.height
+        color: "white"
+      }
+
+      Text {
+        text: tabView.webViewLoadProgress() + "%"
+        horizontalAlignment: Text.AlignRight
+        verticalAlignment: Text.AlignVCenter
+        width: parent.width
+        height: parent.height
+        color: "white"
+      }
     }
 
-    function loadingProgress() {
-      var tab = tabView.getTab(tabView.currentIndex)
-      if (tab && tab.item && tab.item.loading) {
-        return tab.item.loadProgress
-      }
-      return 0
+    Button {
+      id: newTabButton
+      text: "Open new tab"
+      onClicked: tabView.newTab()
+      x: parent.width - newTabButton.width - 5
+      y: 5
     }
   }
-
 }

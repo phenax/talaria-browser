@@ -5,7 +5,7 @@ use qmetaobject::webengine;
 mod resources;
 
 pub fn run_webengine() {
-  // std::env::set_var("QTWEBENGINE_REMOTE_DEBUGGING", "9000");
+  std::env::set_var("QTWEBENGINE_REMOTE_DEBUGGING", "9000");
 
   #[cfg(not(no_qt))]
   webengine::initialize();
