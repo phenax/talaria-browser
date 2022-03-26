@@ -1,7 +1,9 @@
-import QtQuick 2.6;
+import QtQuick 2.9;
 import QtQuick.Window 2.0;
 import QtQuick.Controls 1.2;
 import QtWebEngine 1.8;
+
+import Talaria 1.0;
 
 QtObject {
   id: rootNode
@@ -11,31 +13,53 @@ QtObject {
   property Component windowComponent: Window {
     property string loadUrl: "https://google.com"
 
-    title: "Talaria"
+    title: "Talaria Browser"
     visible: true
     width: 800
     height: 600
 
-    Component.onCompleted: tabListModel.insert(0, { pageUrl: loadUrl })
+    Component.onCompleted: newTab(loadUrl)
 
-    ListModel {
-      id: tabListModel
+    function newWindow(url) {
+      windowComponent.createObject(rootNode, { loadUrl: url || 'https://google.com' });
+    }
 
-      ListElement {
-        pageUrl: "https://html5test.com"
-      }
+    function getWebView(index) {
+      var tab = tabView.getTab(index)
+      return tab && tab.item
+    }
 
-      ListElement {
-        pageUrl: "https://google.com"
+    function getCurrentWebView() {
+      return getWebView(tabView.currentIndex)
+    }
+
+    function webViewLoadProgress() {
+      var webview = getCurrentWebView()
+      return webview ? webview.loadProgress : 0
+    }
+
+    function newTab(url) {
+      browserTabList.open_in_new_tab(url || "https://google.com")
+    }
+
+    BrowserTabList {
+      id: browserTabList
+
+      Component.onCompleted: {
+        newTab("https://google.com")
+        newTab("https://html5test.com")
       }
     }
 
     TabView {
       id: tabView
       anchors.fill: parent
+      currentIndex: browserTabList.current_tab_index
+      frameVisible: false
+      tabsVisible: true
 
       Repeater {
-        model: tabListModel
+        model: browserTabList.tabs
 
         Tab {
           id: tabItem
@@ -44,72 +68,53 @@ QtObject {
           WebEngineView {
             id: webview
             anchors.fill: parent
-            anchors.bottomMargin: 20
-            url: pageUrl
+            anchors.bottomMargin: statusBar.height
+            url: page_url.toString()
 
             onNewViewRequested: function(request) {
               switch (request.destination) {
                 case WebEngineView.NewViewInWindow:
                 case WebEngineView.NewViewInDialog:
-                  tabView.newWindow(request.requestedUrl.toString());
+                  newWindow(request.requestedUrl.toString());
                   break;
                 case WebEngineView.NewViewInBackgroundTab:
                 case WebEngineView.NewViewInTab:
-                  tabView.newTab(request.requestedUrl.toString())
+                  newTab(request.requestedUrl.toString())
                   break;
                 default: break;
               }
             }
 
             onWindowCloseRequested: {
-              tabListModel.remove(tabView.currentIndex, 1)
-              webview.destroy()
+              // tabListModel.remove(tabView.currentIndex, 1)
+              // webview.destroy()
             }
 
             onLoadingChanged: {
-              tabItem.title = (webview.title || 'Loading...').slice(0, 20) + '...'
+              var prefix = webview.loading ? webview.loadProgress + '% | ' : ''
+              tabItem.title = prefix + (webview.title || 'Loading...').slice(0, 20) + '...'
             }
           }
         }
       }
-
-      function newWindow(url) {
-        windowComponent.createObject(rootNode, { loadUrl: url || 'https://google.com' });
-      }
-
-      function newTab(url) {
-        tabListModel.insert(tabView.currentIndex, { pageUrl: url || 'https://google.com' })
-      }
-
-      function getCurrentWebView() {
-        var tab = tabView.getTab(tabView.currentIndex)
-        return tab && tab.item
-      }
-
-      function webViewLoadProgress() {
-        var webview = tabView.getCurrentWebView()
-        if (webview && webview.loading) {
-          return webview.loadProgress
-        }
-        return 0
-      }
     }
 
     Rectangle {
+      id: statusBar
       color: "black"
       height: 18
       width: parent.width
       y: parent.height - height
 
       Text {
-        text: tabView.getCurrentWebView().url
+        text: getCurrentWebView().url
         verticalAlignment: Text.AlignVCenter
         height: parent.height
         color: "white"
       }
 
       Text {
-        text: tabView.webViewLoadProgress() + "%"
+        text: webViewLoadProgress() + "%"
         horizontalAlignment: Text.AlignRight
         verticalAlignment: Text.AlignVCenter
         width: parent.width
@@ -120,8 +125,8 @@ QtObject {
 
     Button {
       id: newTabButton
-      text: "Open new tab"
-      onClicked: tabView.newTab()
+      text: " + "
+      onClicked: newTab()
       x: parent.width - newTabButton.width - 5
       y: 5
     }

@@ -217,6 +217,7 @@ name = "talaria"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "cpp",
  "cstr",
  "qmetaobject",
 ]
