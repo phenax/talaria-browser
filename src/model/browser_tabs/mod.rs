@@ -30,7 +30,6 @@ pub struct BrowserTabList {
 
 impl BrowserTabList {
   fn open_in_new_tab(&mut self, url: String) {
-    println!(">>> opening {}", url);
     let mut tabs = self.tabs.borrow_mut();
     tabs.push(Tab {
       page_url: url,

@@ -1,6 +1,6 @@
-use qmetaobject::prelude::*;
 #[cfg(not(no_qt))]
 use qmetaobject::webengine;
+use qmetaobject::{prelude::*, QMetaType};
 
 mod model;
 mod resources;
@@ -15,6 +15,10 @@ pub fn run_webengine() {
   model::register_all();
 
   let mut engine = QmlEngine::new();
+  engine.set_property(
+    "defaultUrl".into(),
+    "https://duckduckgo.com".to_string().to_qvariant(),
+  );
   engine.load_file("qrc:/qml/src/main.qml".into());
 
   #[cfg(not(no_qt))]

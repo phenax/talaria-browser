@@ -7,11 +7,12 @@ import Talaria 1.0;
 
 QtObject {
   id: rootNode
+
   // Spawn first window
   Component.onCompleted: windowComponent.createObject(rootNode);
 
   property Component windowComponent: Window {
-    property string loadUrl: "https://google.com"
+    property string loadUrl: defaultUrl
 
     title: "Talaria Browser"
     visible: true
@@ -21,7 +22,7 @@ QtObject {
     Component.onCompleted: newTab(loadUrl)
 
     function newWindow(url) {
-      windowComponent.createObject(rootNode, { loadUrl: url || 'https://google.com' });
+      windowComponent.createObject(rootNode, { loadUrl: url || defaultUrl });
     }
 
     function getWebView(index) {
@@ -39,7 +40,7 @@ QtObject {
     }
 
     function newTab(url) {
-      browserTabList.open_in_new_tab(url || "https://google.com")
+      browserTabList.open_in_new_tab(url || defaultUrl)
     }
 
     BrowserTabList {
