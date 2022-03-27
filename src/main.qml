@@ -50,14 +50,26 @@ QtObject {
         newTab("https://google.com")
         newTab("https://html5test.com")
       }
+
+      onTabsChanged: {
+        if (length() <= 0) {
+          tabView.cleanup()
+          windowComponent.close()
+        }
+      }
     }
 
     TabView {
       id: tabView
       anchors.fill: parent
       currentIndex: browserTabList.current_tab_index
-      frameVisible: false
-      tabsVisible: true
+
+      function cleanup() {
+        Array(count).fill(null).forEach((_, i) => {
+          var webview = getWebView(i)
+          webview && webview.destroy()
+        })
+      }
 
       Repeater {
         model: browserTabList.tabs
@@ -87,7 +99,8 @@ QtObject {
             }
 
             onWindowCloseRequested: {
-              // tabListModel.remove(tabView.currentIndex, 1)
+              browserTabList.delete_tab(browserTabList.current_tab_index)
+              webview.deleteLater()
               // webview.destroy()
             }
 
@@ -128,8 +141,16 @@ QtObject {
       id: newTabButton
       text: " + "
       onClicked: newTab()
-      x: parent.width - newTabButton.width - 5
+      x: parent.width - width - 5
       y: 5
+    }
+
+    Button {
+      id: closeTabButton
+      text: " CLOSE "
+      onClicked: browserTabList.delete_active_tab()
+      x: parent.width - width - 5
+      y: 40
     }
   }
 }

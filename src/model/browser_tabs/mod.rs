@@ -24,24 +24,45 @@ pub struct BrowserTabList {
 
   // Methods
   open_in_new_tab: qt_method!(fn(&mut self, url: String)),
-  // get_tab: qt_method!(fn(&self, index: usize) -> QVariant),
-  // get_current_tab: qt_method!(fn(&self) -> QVariant),
+  delete_tab: qt_method!(fn(&mut self, index: usize)),
+  length: qt_method!(fn(&self) -> i32),
+  set_active_tab: qt_method!(fn(&mut self, index: usize)),
+  delete_active_tab: qt_method!(fn(&mut self)),
 }
 
 impl BrowserTabList {
+  fn length(&self) -> i32 {
+    self.tabs.borrow().row_count()
+  }
+
+  fn set_active_tab(&mut self, index: usize) {
+    let len = self.length();
+    let i = index.clamp(0, len as usize - 1);
+
+    self.current_tab_index = i;
+    self.current_tab_index_changed();
+  }
+
   fn open_in_new_tab(&mut self, url: String) {
-    let mut tabs = self.tabs.borrow_mut();
-    tabs.push(Tab {
+    self.tabs.borrow_mut().push(Tab {
       page_url: url,
       title: "Loading...".to_string(),
       icon: "".to_string(),
-    })
+    });
+    self.tabs_changed();
+
+    let tab_len = self.tabs.borrow().row_count();
+    self.set_active_tab(tab_len as usize - 1);
   }
 
-  // fn get_tab(&self, index: usize) -> QVariant {
-  //   self.tabs[index].to_qvariant()
-  // }
-  // fn get_current_tab(&self) -> QVariant {
-  //   self.get_tab(self.current_tab_index)
-  // }
+  fn delete_tab(&mut self, index: usize) {
+    self.tabs.borrow_mut().remove(index);
+    self.tabs_changed();
+    self.set_active_tab(self.current_tab_index);
+  }
+
+  fn delete_active_tab(&mut self) {
+    println!(":: {}", self.current_tab_index);
+    self.delete_tab(self.current_tab_index);
+  }
 }
