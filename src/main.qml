@@ -69,7 +69,7 @@ QtObject {
       TabBar {
         id: tabBar
         width: parent.width
-        currentIndex: browserTabList.current_tab_index
+        currentIndex: browserTabList.active_tab
 
         Repeater {
           model: browserTabList.tabs
@@ -87,6 +87,12 @@ QtObject {
         currentIndex: tabBar.currentIndex
         width: parent.width
         height: parent.height - tabBar.height
+
+        onCurrentIndexChanged: {
+          if (browserTabList.active_tab !== tabBar.currentIndex) {
+            browserTabList.active_tab = tabBar.currentIndex
+          }
+        }
 
         function cleanup() {
           Array(count).fill(null).forEach((_, i) => {
@@ -122,7 +128,7 @@ QtObject {
               }
 
               onWindowCloseRequested: {
-                browserTabList.delete_tab(browserTabList.current_tab_index)
+                browserTabList.delete_tab(browserTabList.active_tab)
                 webview.deleteLater()
                 // webview.destroy()
               }
@@ -130,7 +136,7 @@ QtObject {
               onLoadingChanged: {
                 var prefix = webview.loading ? webview.loadProgress + '% | ' : ''
                 var title = prefix + (webview.title || 'Loading...').slice(0, 20) + '...'
-                // model.page_title = title
+                model.page_title = title
                 // console.log('>>>>>>>>', model.page_title, title)
               }
             }
@@ -150,7 +156,10 @@ QtObject {
               }
 
               Text {
-                text: webViewLoadProgress() + "%"
+                text:
+                  (browserTabList.active_tab + 1) + "/" + browserTabList.tabs.rowCount()
+                  + " | "
+                  + webViewLoadProgress() + "%"
                 horizontalAlignment: Text.AlignRight
                 verticalAlignment: Text.AlignVCenter
                 width: parent.width
@@ -158,7 +167,6 @@ QtObject {
                 color: "white"
               }
             }
-
           }
         }
       }
