@@ -72,8 +72,13 @@ QtObject {
 
           TabButton {
             text: page_title + ' | ' + page_url
-            verticalPadding: 0
-            topInset: 0
+            display: AbstractButton.TextBesideIcon
+            implicitHeight: 35
+            icon {
+              name: "favicon"
+              height: implicitHeight - 5
+              source: "https://github.com/favicon.ico"
+            }
           }
         }
       }
