@@ -16,6 +16,7 @@ QtObject {
   property Component windowComponent: Window {
     property string loadUrl: defaultUrl
 
+    id: currentWindow
     title: "Talaria Browser"
     visible: true
     width: 800
@@ -25,22 +26,6 @@ QtObject {
 
     function newWindow(url) {
       windowComponent.createObject(rootNode, { loadUrl: url || defaultUrl });
-    }
-
-    function getWebView(index) {
-      return null
-      // TODO: Fix
-      // var tab = tabStack.getTab(index)
-      // return tab && tab.item
-    }
-
-    function getCurrentWebView() {
-      return getWebView(tabStack.currentIndex)
-    }
-
-    function webViewLoadProgress() {
-      var webview = getCurrentWebView()
-      return webview ? webview.loadProgress : 0
     }
 
     function newTab(url) {
@@ -57,8 +42,7 @@ QtObject {
 
       onTabsChanged: {
         if (length() <= 0) {
-          tabStack.cleanup()
-          windowComponent.close()
+          currentWindow.close()
         }
       }
     }
@@ -72,6 +56,7 @@ QtObject {
         currentIndex: tabListModel.active_tab
 
         onCurrentIndexChanged: {
+          if (tabBar.currentIndex < 0) return;
           if (tabListModel.active_tab !== tabBar.currentIndex) {
             tabListModel.active_tab = tabBar.currentIndex
           }
@@ -93,13 +78,6 @@ QtObject {
         currentIndex: tabBar.currentIndex
         width: parent.width
         height: parent.height - tabBar.height
-
-        function cleanup() {
-          Array(count).fill(null).forEach((_, i) => {
-            var webview = getWebView(i)
-            webview && webview.destroy()
-          })
-        }
 
         Repeater {
           model: tabListModel.tabs
@@ -137,7 +115,7 @@ QtObject {
                 var prefix = webview.loading ? webview.loadProgress + '% | ' : ''
                 var title = prefix + (webview.title || 'Loading...').slice(0, 20) + '...'
                 model.page_title = title
-                console.log('>>>>>>>>', model.page_title, title)
+                // tabListModel.set_tab_title(index, title)
               }
             }
 
@@ -159,7 +137,7 @@ QtObject {
                 text:
                   (tabListModel.active_tab + 1) + "/" + tabListModel.tabs.rowCount()
                   + " | "
-                  + webViewLoadProgress() + "%"
+                  + webview.loadProgress + "%"
                 horizontalAlignment: Text.AlignRight
                 verticalAlignment: Text.AlignVCenter
                 width: parent.width

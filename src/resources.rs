@@ -1,11 +1,7 @@
 use qmetaobject::prelude::*;
 
-qrc!(load_resources_inner,
+qrc!(pub load_resources,
   "qml" {
     "src/main.qml",
   },
 );
-
-pub fn load_resources() {
-  load_resources_inner()
-}
