@@ -1,7 +1,9 @@
 import QtQuick 2.9;
 import QtQuick.Window 2.0;
-import QtQuick.Controls 1.2;
+// import QtQuick.Controls 1.2;
+import QtQuick.Controls 2.15;
 import QtWebEngine 1.8;
+import QtQuick.Layouts 1.15;
 
 import Talaria 1.0;
 
@@ -26,12 +28,14 @@ QtObject {
     }
 
     function getWebView(index) {
-      var tab = tabView.getTab(index)
-      return tab && tab.item
+      return null
+      // TODO: Fix
+      // var tab = tabStack.getTab(index)
+      // return tab && tab.item
     }
 
     function getCurrentWebView() {
-      return getWebView(tabView.currentIndex)
+      return getWebView(tabStack.currentIndex)
     }
 
     function webViewLoadProgress() {
@@ -53,87 +57,110 @@ QtObject {
 
       onTabsChanged: {
         if (length() <= 0) {
-          tabView.cleanup()
+          tabStack.cleanup()
           windowComponent.close()
         }
       }
     }
 
-    TabView {
-      id: tabView
+    Column {
       anchors.fill: parent
-      currentIndex: browserTabList.current_tab_index
 
-      function cleanup() {
-        Array(count).fill(null).forEach((_, i) => {
-          var webview = getWebView(i)
-          webview && webview.destroy()
-        })
-      }
+      TabBar {
+        id: tabBar
+        width: parent.width
+        currentIndex: browserTabList.current_tab_index
 
-      Repeater {
-        model: browserTabList.tabs
+        Repeater {
+          model: browserTabList.tabs
 
-        Tab {
-          id: tabItem
-          title: "Loading..."
-
-          WebEngineView {
-            id: webview
-            anchors.fill: parent
-            anchors.bottomMargin: statusBar.height
-            url: page_url.toString()
-
-            onNewViewRequested: function(request) {
-              switch (request.destination) {
-                case WebEngineView.NewViewInWindow:
-                case WebEngineView.NewViewInDialog:
-                  newWindow(request.requestedUrl.toString());
-                  break;
-                case WebEngineView.NewViewInBackgroundTab:
-                case WebEngineView.NewViewInTab:
-                  newTab(request.requestedUrl.toString())
-                  break;
-                default: break;
-              }
-            }
-
-            onWindowCloseRequested: {
-              browserTabList.delete_tab(browserTabList.current_tab_index)
-              webview.deleteLater()
-              // webview.destroy()
-            }
-
-            onLoadingChanged: {
-              var prefix = webview.loading ? webview.loadProgress + '% | ' : ''
-              tabItem.title = prefix + (webview.title || 'Loading...').slice(0, 20) + '...'
-            }
+          TabButton {
+            text: page_title + ' | ' + page_url
+            verticalPadding: 0
+            topInset: 0
           }
         }
       }
-    }
 
-    Rectangle {
-      id: statusBar
-      color: "black"
-      height: 18
-      width: parent.width
-      y: parent.height - height
-
-      Text {
-        text: getCurrentWebView().url
-        verticalAlignment: Text.AlignVCenter
-        height: parent.height
-        color: "white"
-      }
-
-      Text {
-        text: webViewLoadProgress() + "%"
-        horizontalAlignment: Text.AlignRight
-        verticalAlignment: Text.AlignVCenter
+      StackLayout {
+        id: tabStack
+        currentIndex: tabBar.currentIndex
         width: parent.width
-        height: parent.height
-        color: "white"
+        height: parent.height - tabBar.height
+
+        function cleanup() {
+          Array(count).fill(null).forEach((_, i) => {
+            var webview = getWebView(i)
+            webview && webview.destroy()
+          })
+        }
+
+        Repeater {
+          model: browserTabList.tabs
+
+          Item {
+            id: tabItem
+
+            WebEngineView {
+              id: webview
+              anchors.fill: parent
+              anchors.bottomMargin: statusBar.height
+              url: page_url.toString()
+
+              onNewViewRequested: function(request) {
+                switch (request.destination) {
+                  case WebEngineView.NewViewInWindow:
+                  case WebEngineView.NewViewInDialog:
+                    newWindow(request.requestedUrl.toString());
+                    break;
+                  case WebEngineView.NewViewInBackgroundTab:
+                  case WebEngineView.NewViewInTab:
+                    newTab(request.requestedUrl.toString())
+                    break;
+                  default: break;
+                }
+              }
+
+              onWindowCloseRequested: {
+                browserTabList.delete_tab(browserTabList.current_tab_index)
+                webview.deleteLater()
+                // webview.destroy()
+              }
+
+              onLoadingChanged: {
+                var prefix = webview.loading ? webview.loadProgress + '% | ' : ''
+                var title = prefix + (webview.title || 'Loading...').slice(0, 20) + '...'
+                // model.page_title = title
+                // console.log('>>>>>>>>', model.page_title, title)
+              }
+            }
+
+            Rectangle {
+              id: statusBar
+              color: "black"
+              height: 18
+              width: parent.width
+              y: parent.height - height
+
+              Text {
+                text: page_url
+                verticalAlignment: Text.AlignVCenter
+                height: parent.height
+                color: "white"
+              }
+
+              Text {
+                text: webViewLoadProgress() + "%"
+                horizontalAlignment: Text.AlignRight
+                verticalAlignment: Text.AlignVCenter
+                width: parent.width
+                height: parent.height
+                color: "white"
+              }
+            }
+
+          }
+        }
       }
     }
 

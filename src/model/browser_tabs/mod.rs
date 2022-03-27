@@ -1,12 +1,11 @@
-use std::{cell::RefCell, collections::HashMap};
+use std::{cell::RefCell, ops::IndexMut};
 
-use qmetaobject::{prelude::*, QMetaType, SimpleListItem, SimpleListModel, USER_ROLE};
+use qmetaobject::{prelude::*, SimpleListItem, SimpleListModel};
 
-#[derive(SimpleListItem, Default)]
+#[derive(SimpleListItem, Clone, Default)]
 struct Tab {
-  // Properties
-  pub title: String,
-  pub icon: String,
+  pub page_title: String,
+  pub page_icon: String,
   pub page_url: String,
 }
 
@@ -16,7 +15,7 @@ pub struct BrowserTabList {
 
   // Properties
   tabs: qt_property!(RefCell<SimpleListModel<Tab>>; NOTIFY tabs_changed),
-  current_tab_index: qt_property!(usize; NOTIFY current_tab_index_changed),
+  active_tab: qt_property!(usize; WRITE set_active_tab NOTIFY current_tab_index_changed),
 
   // Signals
   current_tab_index_changed: qt_signal!(),
@@ -28,6 +27,7 @@ pub struct BrowserTabList {
   length: qt_method!(fn(&self) -> i32),
   set_active_tab: qt_method!(fn(&mut self, index: usize)),
   delete_active_tab: qt_method!(fn(&mut self)),
+  // set_tab_title: qt_method!(fn(&mut self, index: usize, title: String)),
 }
 
 impl BrowserTabList {
@@ -35,19 +35,23 @@ impl BrowserTabList {
     self.tabs.borrow().row_count()
   }
 
-  fn set_active_tab(&mut self, index: usize) {
+  fn index(&self, index: usize) -> usize {
     let len = self.length();
-    let i = index.clamp(0, len as usize - 1);
+    index.clamp(0, len as usize - 1)
+  }
 
-    self.current_tab_index = i;
+  fn set_active_tab(&mut self, index: usize) {
+    let i = self.index(index);
+
+    self.active_tab = i;
     self.current_tab_index_changed();
   }
 
   fn open_in_new_tab(&mut self, url: String) {
     self.tabs.borrow_mut().push(Tab {
       page_url: url,
-      title: "Loading...".to_string(),
-      icon: "".to_string(),
+      page_title: "Loading...".to_string(),
+      page_icon: "".to_string(),
     });
     self.tabs_changed();
 
@@ -56,13 +60,22 @@ impl BrowserTabList {
   }
 
   fn delete_tab(&mut self, index: usize) {
-    self.tabs.borrow_mut().remove(index);
+    let i = self.index(index);
+    self.tabs.borrow_mut().remove(i);
     self.tabs_changed();
-    self.set_active_tab(self.current_tab_index);
+    self.set_active_tab(self.index(self.active_tab - 1));
   }
 
   fn delete_active_tab(&mut self) {
-    println!(":: {}", self.current_tab_index);
-    self.delete_tab(self.current_tab_index);
+    self.delete_tab(self.index(self.active_tab));
   }
+
+  //fn set_tab_title(&mut self, index: usize, title: String) {
+  //let tabs = self.tabs.borrow_mut();
+  //let mut tabs_vec = tabs.iter().collect::<Vec<_>>();
+  //let i = self.index(index);
+  //let tab = *tabs_vec.index_mut(i);
+  //tab.to_owned().page_title = title;
+  //self.tabs_changed();
+  //}
 }
