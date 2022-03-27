@@ -18,5 +18,5 @@ macro_rules! register {
 }
 
 pub fn register_all() {
-  register!(browser_tabs::BrowserTabList, "BrowserTabList");
+  register!(browser_tabs::BrowserTabList, "BrowserTabListModel");
 }

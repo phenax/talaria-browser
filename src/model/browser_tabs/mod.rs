@@ -15,7 +15,7 @@ pub struct BrowserTabList {
 
   // Properties
   tabs: qt_property!(RefCell<SimpleListModel<Tab>>; NOTIFY tabs_changed),
-  active_tab: qt_property!(usize; WRITE set_active_tab NOTIFY current_tab_index_changed),
+  active_tab: qt_property!(usize; NOTIFY current_tab_index_changed),
 
   // Signals
   current_tab_index_changed: qt_signal!(),
@@ -41,9 +41,7 @@ impl BrowserTabList {
   }
 
   fn set_active_tab(&mut self, index: usize) {
-    let i = self.index(index);
-
-    self.active_tab = i;
+    self.active_tab = self.index(index);
     self.current_tab_index_changed();
   }
 
@@ -55,7 +53,7 @@ impl BrowserTabList {
     });
     self.tabs_changed();
 
-    let tab_len = self.tabs.borrow().row_count();
+    let tab_len = self.length();
     self.set_active_tab(tab_len as usize - 1);
   }
 
@@ -63,11 +61,10 @@ impl BrowserTabList {
     let i = self.index(index);
     self.tabs.borrow_mut().remove(i);
     self.tabs_changed();
-    self.set_active_tab(self.index(self.active_tab - 1));
   }
 
   fn delete_active_tab(&mut self) {
-    self.delete_tab(self.index(self.active_tab));
+    self.delete_tab(self.active_tab);
   }
 
   //fn set_tab_title(&mut self, index: usize, title: String) {

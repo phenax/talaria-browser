@@ -44,11 +44,11 @@ QtObject {
     }
 
     function newTab(url) {
-      browserTabList.open_in_new_tab(url || defaultUrl)
+      tabListModel.open_in_new_tab(url || defaultUrl)
     }
 
-    BrowserTabList {
-      id: browserTabList
+    BrowserTabListModel {
+      id: tabListModel
 
       Component.onCompleted: {
         newTab("https://google.com")
@@ -69,10 +69,16 @@ QtObject {
       TabBar {
         id: tabBar
         width: parent.width
-        currentIndex: browserTabList.active_tab
+        currentIndex: tabListModel.active_tab
+
+        onCurrentIndexChanged: {
+          if (tabListModel.active_tab !== tabBar.currentIndex) {
+            tabListModel.active_tab = tabBar.currentIndex
+          }
+        }
 
         Repeater {
-          model: browserTabList.tabs
+          model: tabListModel.tabs
 
           TabButton {
             text: page_title + ' | ' + page_url
@@ -88,12 +94,6 @@ QtObject {
         width: parent.width
         height: parent.height - tabBar.height
 
-        onCurrentIndexChanged: {
-          if (browserTabList.active_tab !== tabBar.currentIndex) {
-            browserTabList.active_tab = tabBar.currentIndex
-          }
-        }
-
         function cleanup() {
           Array(count).fill(null).forEach((_, i) => {
             var webview = getWebView(i)
@@ -102,7 +102,7 @@ QtObject {
         }
 
         Repeater {
-          model: browserTabList.tabs
+          model: tabListModel.tabs
 
           Item {
             id: tabItem
@@ -128,7 +128,7 @@ QtObject {
               }
 
               onWindowCloseRequested: {
-                browserTabList.delete_tab(browserTabList.active_tab)
+                tabListModel.delete_tab(tabListModel.active_tab)
                 webview.deleteLater()
                 // webview.destroy()
               }
@@ -137,7 +137,7 @@ QtObject {
                 var prefix = webview.loading ? webview.loadProgress + '% | ' : ''
                 var title = prefix + (webview.title || 'Loading...').slice(0, 20) + '...'
                 model.page_title = title
-                // console.log('>>>>>>>>', model.page_title, title)
+                console.log('>>>>>>>>', model.page_title, title)
               }
             }
 
@@ -157,7 +157,7 @@ QtObject {
 
               Text {
                 text:
-                  (browserTabList.active_tab + 1) + "/" + browserTabList.tabs.rowCount()
+                  (tabListModel.active_tab + 1) + "/" + tabListModel.tabs.rowCount()
                   + " | "
                   + webViewLoadProgress() + "%"
                 horizontalAlignment: Text.AlignRight
@@ -183,7 +183,7 @@ QtObject {
     Button {
       id: closeTabButton
       text: " CLOSE "
-      onClicked: browserTabList.delete_active_tab()
+      onClicked: tabListModel.delete_active_tab()
       x: parent.width - width - 5
       y: 40
     }
