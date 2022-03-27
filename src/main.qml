@@ -25,8 +25,13 @@ QtObject {
     Component.onCompleted: newTab(loadUrl)
 
     function newWindow(url) {
-      windowComponent.createObject(rootNode, { loadUrl: url || defaultUrl });
+      windowComponent.createObject(rootNode, { loadUrl: url || defaultUrl })
     }
+
+    function closeWindow(url) {
+      currentWindow.close()
+    }
+
 
     function newTab(url) {
       tabListModel.open_in_new_tab(url || defaultUrl)
@@ -42,7 +47,7 @@ QtObject {
 
       onTabsChanged: {
         if (length() <= 0) {
-          currentWindow.close()
+          closeWindow()
         }
       }
     }
@@ -152,18 +157,26 @@ QtObject {
 
     Button {
       id: newTabButton
-      text: " + "
+      text: " New tab "
       onClicked: newTab()
       x: parent.width - width - 5
-      y: 5
+      y: 0
     }
 
     Button {
       id: closeTabButton
-      text: " CLOSE "
+      text: " Close Tab "
       onClicked: tabListModel.delete_active_tab()
       x: parent.width - width - 5
       y: 40
+    }
+
+    Button {
+      id: closeWindowButton
+      text: " Close Window "
+      onClicked: closeWindow()
+      x: parent.width - width - 5
+      y: 80
     }
   }
 }
