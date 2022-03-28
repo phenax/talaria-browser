@@ -2,7 +2,6 @@
 
 
 ## Features
-  - [ ] New tab button
   - [ ] tab favicon from page
   - [ ] tab title from page
   - [ ] Open url modal
@@ -14,6 +13,6 @@
   - [ ] Fix tab close icon
 
 ## Tech Debt
-  - [ ] Inject model from rust
-  - [ ] Split into sub-components
   - [ ] Write integration tests
+  - [ ] Inject model from rust
+  - [ ] move loadProgress to tab state

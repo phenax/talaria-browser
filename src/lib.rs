@@ -16,7 +16,7 @@ pub fn run_webengine() {
 
   let mut engine = QmlEngine::new();
   engine.set_property(
-    "defaultUrl".into(),
+    "_DEFAULT_URL".into(),
     "https://duckduckgo.com".to_string().to_qvariant(),
   );
   engine.load_file("qrc:/qml/src/main.qml".into());

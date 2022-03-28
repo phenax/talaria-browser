@@ -15,7 +15,7 @@ QtObject {
   Component.onCompleted: windowComponent.createObject(rootNode);
 
   property Component windowComponent: Window {
-    property string loadUrl: defaultUrl
+    property string loadUrl: _DEFAULT_URL
 
     id: currentWindow
     title: "Talaria Browser"
@@ -26,7 +26,7 @@ QtObject {
     Component.onCompleted: currentWindow.newTab(loadUrl)
 
     function newWindow(url) {
-      windowComponent.createObject(rootNode, { loadUrl: url || defaultUrl })
+      windowComponent.createObject(rootNode, { loadUrl: url || _DEFAULT_URL })
     }
 
     function closeWindow(url) {
@@ -34,7 +34,7 @@ QtObject {
     }
 
     function newTab(url) {
-      tabListModel.open_in_new_tab(url || defaultUrl)
+      tabListModel.open_in_new_tab(url || _DEFAULT_URL)
     }
 
     function closeTab(index) {
@@ -51,7 +51,7 @@ QtObject {
 
       onTabsChanged: {
         if (length() <= 0) {
-          closeWindow()
+          currentWindow.closeWindow()
         }
       }
     }
@@ -86,37 +86,15 @@ QtObject {
           Item {
             id: tabItem
 
-            WebEngineView {
+            TalariaWidgets.WebView {
               id: webview
-              anchors.fill: parent
-              anchors.bottomMargin: statusBar.height
-              url: page_url.toString()
+              url: model.page_url
 
-              onNewViewRequested: function(request) {
-                switch (request.destination) {
-                  case WebEngineView.NewViewInWindow:
-                  case WebEngineView.NewViewInDialog:
-                    newWindow(request.requestedUrl.toString());
-                    break;
-                  case WebEngineView.NewViewInBackgroundTab:
-                  case WebEngineView.NewViewInTab:
-                    currentWindow.newTab(request.requestedUrl.toString())
-                    break;
-                  default: break;
-                }
-              }
-
-              onWindowCloseRequested: {
-                tabListModel.delete_tab(tabListModel.active_tab)
-                webview.deleteLater()
-                // webview.destroy()
-              }
-
-              onLoadingChanged: {
-                var prefix = webview.loading ? webview.loadProgress + '% | ' : ''
-                var title = prefix + (webview.title || 'Loading...').slice(0, 20) + '...'
-                model.page_title = title
-                // tabListModel.set_tab_title(index, title)
+              onOpenInNewWindow: url => currentWindow.newWindow(url)
+              onOpenInNewTab: url => currentWindow.newTab(url)
+              onCloseTab: currentWindow.closeTab(model.index)
+              onLoadingProgress: (loading, progress) => {
+                // console.log('>>>>', loading, progress)
               }
             }
 
@@ -154,7 +132,7 @@ QtObject {
     Button {
       id: closeWindowButton
       text: " Close Window "
-      onClicked: closeWindow()
+      onClicked: currentWindow.closeWindow()
       x: parent.width - width - 5
       y: 100
     }
