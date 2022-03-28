@@ -3,5 +3,6 @@ use qmetaobject::prelude::*;
 qrc!(pub load_resources,
   "qml" {
     "src/main.qml",
+    "src/widgets/Tab.qml",
   },
 );
