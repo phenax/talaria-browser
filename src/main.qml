@@ -9,10 +9,10 @@ import Talaria 1.0;
 import "widgets" as TalariaWidgets;
 
 QtObject {
-  id: rootNode
+  id: root
 
   // Spawn first window
-  Component.onCompleted: windowComponent.createObject(rootNode);
+  Component.onCompleted: windowComponent.createObject(root)
 
   property Component windowComponent: Window {
     property string loadUrl: _DEFAULT_URL
@@ -26,7 +26,7 @@ QtObject {
     Component.onCompleted: currentWindow.newTab(loadUrl)
 
     function newWindow(url) {
-      windowComponent.createObject(rootNode, { loadUrl: url || _DEFAULT_URL })
+      windowComponent.createObject(root, { loadUrl: url || _DEFAULT_URL })
     }
 
     function closeWindow(url) {

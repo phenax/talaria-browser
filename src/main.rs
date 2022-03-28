@@ -1,3 +1,3 @@
 fn main() {
-  talaria::run_webengine()
+  talaria::run_application();
 }

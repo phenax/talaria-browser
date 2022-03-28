@@ -218,6 +218,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "cpp",
+ "cpp_build",
  "cstr",
  "qmetaobject",
 ]
