@@ -6,7 +6,7 @@ import QtWebEngine 1.8;
 import QtQuick.Layouts 1.15;
 
 import Talaria 1.0;
-import "widgets" as Talaria
+import "widgets" as TalariaWidgets;
 
 QtObject {
   id: rootNode
@@ -23,7 +23,7 @@ QtObject {
     width: 800
     height: 600
 
-    Component.onCompleted: newTab(loadUrl)
+    Component.onCompleted: currentWindow.newTab(loadUrl)
 
     function newWindow(url) {
       windowComponent.createObject(rootNode, { loadUrl: url || defaultUrl })
@@ -45,8 +45,8 @@ QtObject {
       id: tabListModel
 
       Component.onCompleted: {
-        newTab("https://google.com")
-        newTab("https://html5test.com")
+        currentWindow.newTab("https://google.com")
+        currentWindow.newTab("https://html5test.com")
       }
 
       onTabsChanged: {
@@ -59,41 +59,26 @@ QtObject {
     Column {
       anchors.fill: parent
 
-      TabBar {
-        id: tabBar
-        width: parent.width
-        currentIndex: tabListModel.active_tab
+      TalariaWidgets.Topbar {
+        id: topbar
+        activeTab: tabListModel.active_tab
+        tabs: tabListModel.tabs
 
-        onCurrentIndexChanged: {
-          if (tabBar.currentIndex < 0) return;
-          if (tabListModel.active_tab !== tabBar.currentIndex) {
-            tabListModel.active_tab = tabBar.currentIndex
+        onOpenNewTab: currentWindow.newTab()
+        onTabClosed: index => currentWindow.closeTab(index)
+        onCurrentIndexChanged: activeTab => {
+          if (activeTab < 0) return;
+          if (tabListModel.active_tab !== activeTab) {
+            tabListModel.active_tab = activeTab
           }
-        }
-
-        Repeater {
-          model: tabListModel.tabs
-
-          Talaria.Tab {
-            page_title: model.page_title
-            page_url: model.page_url
-            page_icon: model.page_icon
-            onTabClosed: closeTab(model.index)
-          }
-        }
-
-        Button {
-          id: newTabBtn
-          width: 80
-          text: "+"
         }
       }
 
       StackLayout {
         id: tabStack
-        currentIndex: tabBar.currentIndex
+        currentIndex: topbar.activeTab
         width: parent.width
-        height: parent.height - tabBar.height
+        height: parent.height - topbar.height
 
         Repeater {
           model: tabListModel.tabs
@@ -115,7 +100,7 @@ QtObject {
                     break;
                   case WebEngineView.NewViewInBackgroundTab:
                   case WebEngineView.NewViewInTab:
-                    newTab(request.requestedUrl.toString())
+                    currentWindow.newTab(request.requestedUrl.toString())
                     break;
                   default: break;
                 }
@@ -167,27 +152,11 @@ QtObject {
     }
 
     Button {
-      id: newTabButton
-      text: " New tab "
-      onClicked: newTab()
-      x: parent.width - width - 5
-      y: 0
-    }
-
-    Button {
-      id: closeTabButton
-      text: " Close Tab "
-      onClicked: tabListModel.delete_active_tab()
-      x: parent.width - width - 5
-      y: 40
-    }
-
-    Button {
       id: closeWindowButton
       text: " Close Window "
       onClicked: closeWindow()
       x: parent.width - width - 5
-      y: 80
+      y: 100
     }
   }
 }

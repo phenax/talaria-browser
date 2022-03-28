@@ -2,14 +2,13 @@ import QtQuick 2.9;
 import QtQuick.Controls 2.15;
 
 TabButton {
-  id: tabButton
-
   signal tabClosed()
 
   property string page_title
   property string page_url
   property string page_icon
 
+  id: root
   text: page_title + ' | ' + page_url
   implicitHeight: 32
   icon {
@@ -18,7 +17,7 @@ TabButton {
 
   contentItem: Rectangle {
     anchors.fill: parent
-    color: tabButton.checked ? tabButton.palette.window : tabButton.palette.dark
+    color: root.checked ? root.palette.window : root.palette.dark
 
     Image {
       id: favicon
@@ -26,7 +25,7 @@ TabButton {
       height: width
       anchors.verticalCenter: parent.verticalCenter
       x: 8
-      source: tabButton.icon.source
+      source: root.icon.source
       cache: true
       fillMode: Image.PreserveAspectFit
       smooth: true
@@ -38,9 +37,9 @@ TabButton {
       anchors.leftMargin: 8
       clip: true
       width: parent.width - favicon.width - closeButton.width - 20
-      text: tabButton.text
-      font: tabButton.font
-      color: tabButton.checked ? tabButton.palette.windowText : tabButton.palette.brightText
+      text: root.text
+      font: root.font
+      color: root.checked ? root.palette.windowText : root.palette.brightText
     }
 
     Button {
@@ -51,7 +50,7 @@ TabButton {
       // anchors.rightMargin: 8
       text: 'X'
       palette.buttonText: "red"
-      onClicked: tabButton.tabClosed()
+      onClicked: root.tabClosed()
       // display: AbstractButton.IconOnly
       background.opacity: 0
     }
