@@ -3,7 +3,7 @@ import QtQuick.Controls 2.15;
 
 import "." as TalariaWidgets;
 
-Row {
+Column {
   signal openNewTab()
   signal currentIndexChanged(int activeTab)
   signal tabClosed(int index)
@@ -14,30 +14,42 @@ Row {
   id: root
   width: parent.width
 
-  TabBar {
-    id: tabBar
-    width: parent.width - newTabBtn.width
-    currentIndex: root.activeTab
+  Row {
+    width: parent.width
 
-    onCurrentIndexChanged: root.currentIndexChanged(tabBar.currentIndex)
+    TabBar {
+      id: tabBar
+      width: parent.width - newTabBtn.width
+      currentIndex: root.activeTab
 
-    Repeater {
-      model: root.tabs
+      onCurrentIndexChanged: root.currentIndexChanged(tabBar.currentIndex)
 
-      TalariaWidgets.Tab {
-        page_title: model.page_title
-        page_url: model.page_url
-        page_icon: model.page_icon
-        onTabClosed: root.tabClosed(model.index)
+      Repeater {
+        model: root.tabs
+
+        TalariaWidgets.Tab {
+          page_title: model.page_title
+          page_url: model.page_url
+          page_icon: model.page_icon
+          onTabClosed: root.tabClosed(model.index)
+        }
       }
+    }
+
+    Button {
+      id: newTabBtn
+      width: 40
+      height: tabBar.height
+      onClicked: root.openNewTab()
+      text: "+"
     }
   }
 
-  Button {
-    id: newTabBtn
-    width: 50
-    height: tabBar.height
-    onClicked: root.openNewTab()
-    text: "+"
+  Rectangle {
+    SystemPalette { id: palette; colorGroup: SystemPalette.Active }
+
+    height: 2
+    width: parent.width
+    color: palette.window
   }
 }

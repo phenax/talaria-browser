@@ -10,7 +10,7 @@ TabButton {
 
   id: root
   text: page_title + ' | ' + page_url
-  implicitHeight: 32
+  implicitHeight: 28
   icon {
     source: "https://github.com/favicon.ico" // page_icon
   }

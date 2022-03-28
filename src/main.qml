@@ -54,8 +54,6 @@ QtObject {
     TalariaWidgets.CommandMenu {
       id: commandMenu
 
-      Component.onCompleted: commandMenu.open()
-
       onSelected: id => {
         var splits = id.split(/\s+/)
         var type = splits[0]
