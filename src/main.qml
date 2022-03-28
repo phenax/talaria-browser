@@ -32,9 +32,12 @@ QtObject {
       currentWindow.close()
     }
 
-
     function newTab(url) {
       tabListModel.open_in_new_tab(url || defaultUrl)
+    }
+
+    function closeTab(index) {
+      tabListModel.delete_tab(index)
     }
 
     BrowserTabListModel {
@@ -71,15 +74,60 @@ QtObject {
           model: tabListModel.tabs
 
           TabButton {
+            id: tabButton
             text: page_title + ' | ' + page_url
-            display: AbstractButton.TextBesideIcon
-            implicitHeight: 35
+            implicitHeight: 32
             icon {
-              name: "favicon"
-              height: implicitHeight - 5
               source: "https://github.com/favicon.ico"
             }
+
+            contentItem: Rectangle {
+              anchors.fill: parent
+              color: tabButton.checked ? tabButton.palette.window : tabButton.palette.dark
+
+              Image {
+                id: favicon
+                width: 12
+                height: width
+                anchors.verticalCenter: parent.verticalCenter
+                x: 8
+                source: tabButton.icon.source
+                cache: true
+                fillMode: Image.PreserveAspectFit
+                smooth: true
+              }
+
+              Text {
+                anchors.verticalCenter: parent.verticalCenter
+                anchors.left: favicon.right
+                anchors.leftMargin: 8
+                clip: true
+                width: parent.width - favicon.width - closeButton.width - 20
+                text: tabButton.text
+                font: tabButton.font
+                color: tabButton.checked ? tabButton.palette.windowText : tabButton.palette.brightText
+              }
+
+              Button {
+                id: closeButton
+                anchors.verticalCenter: parent.verticalCenter
+                anchors.right: parent.right
+                width: 20
+                // anchors.rightMargin: 8
+                text: 'X'
+                palette.buttonText: "red"
+                onClicked: closeTab(model.index)
+                // display: AbstractButton.IconOnly
+                background.opacity: 0
+              }
+            }
           }
+        }
+
+        Button {
+          id: newTabBtn
+          width: 80
+          text: "+"
         }
       }
 
