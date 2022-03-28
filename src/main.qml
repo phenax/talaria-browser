@@ -44,15 +44,34 @@ QtObject {
     BrowserTabListModel {
       id: tabListModel
 
-      Component.onCompleted: {
-        currentWindow.newTab("https://google.com")
-        currentWindow.newTab("https://html5test.com")
-      }
-
       onTabsChanged: {
         if (length() <= 0) {
           currentWindow.closeWindow()
         }
+      }
+    }
+
+    TalariaWidgets.CommandMenu {
+      id: commandMenu
+
+      Component.onCompleted: commandMenu.open()
+
+      onSelected: id => {
+        var splits = id.split(/\s+/)
+        var type = splits[0]
+        var url = id
+
+        switch (type) {
+          case 'go': url = 'https://google.com/search?q=' + splits.slice(1).join(' '); break;
+          case 'd': url = 'https://duckduckgo.com/?q=' + splits.slice(1).join(' '); break;
+          default: url = id;
+        }
+
+        if (!url.match(/^https?/)) {
+          url = 'https://' + url
+        }
+
+        currentWindow.newTab(url)
       }
     }
 
@@ -130,11 +149,20 @@ QtObject {
     }
 
     Button {
+      id: commandMenuBtn
+      text: " CommandMenu "
+      onClicked: commandMenu.open()
+      x: parent.width - width - 5
+      y: 100
+    }
+
+    Button {
       id: closeWindowButton
       text: " Close Window "
       onClicked: currentWindow.closeWindow()
       x: parent.width - width - 5
-      y: 100
+      // y: 100
+      anchors.top: commandMenuBtn.bottom
     }
   }
 }

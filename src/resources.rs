@@ -6,5 +6,6 @@ qrc!(pub load_resources,
     "src/widgets/Tab.qml",
     "src/widgets/Topbar.qml",
     "src/widgets/WebView.qml",
+    "src/widgets/CommandMenu.qml",
   },
 );
